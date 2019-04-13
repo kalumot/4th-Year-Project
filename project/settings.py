@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'ammamanager',
     'project',
-    #'crispy_forms'
+    'crispy_forms'
 ]
 
 MIDDLEWARE = [
