@@ -1,6 +1,6 @@
 #project.urls
 
-from django.urls import include, path
+from django.conf.urls import include, path
 
 from ammamanager.views import ammamanager, gyms, promotions
 
