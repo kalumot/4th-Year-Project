@@ -1,3 +1,5 @@
+
+
 from django.urls import include, path
 
 from ammamanager.views import ammamanager, gyms, promotions
