@@ -3,6 +3,7 @@ from django.conf.urls import *
 from .views import ammamanager, gyms, promotions
 urlpatterns = [
     # Examples:
+    rl(r'', ammamanager.home, name='home'),
     url(r'^gyms', include(([
         url(r'^', gyms.GymHomeView.as_view(), name='gym_home'),
         url(r'^fighters/', gyms.ListFightersView.as_view(), name='fighter_list'),
