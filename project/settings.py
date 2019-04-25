@@ -27,7 +27,7 @@ SECRET_KEY = 'd$pxg6fisc4iwzk&vz^s_d0lkf&k63l5a8f!obktw!jg#4zvp3'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [u'ammahelper.azurewebsites.net','kalumammamanager.azurewebsites.net','127.0.0.1']
+ALLOWED_HOSTS = [u'ammahelper.azurewebsites.net','127.0.0.1']
 
 
 # Application definition
@@ -79,18 +79,19 @@ WSGI_APPLICATION = 'project.wsgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'sql_server.pyodbc',
+        'NAME': 'AMMA',
+        'USER': 'kalum@amma',
+        'PASSWORD': 'Neonking96',
+        'HOST': 'amma.database.windows.net',
     }
 }
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/2.0/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 

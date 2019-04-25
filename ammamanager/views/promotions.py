@@ -5,7 +5,7 @@ from django.db import transaction
 from django.db.models import Avg, Count
 from django.forms import inlineformset_factory
 from django.shortcuts import get_object_or_404, redirect, render
-#from django.urls import reverse, reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   UpdateView)
@@ -45,7 +45,7 @@ class ListEventsView(ListView):
     ordering = ('name', )
     context_object_name = 'events'
     template_name = 'ammamanager/promotions/event_list.html'
-
+    #events = Event.objects.all().filter(owner=.user)
     def get_queryset(self):
         queryset = self.request.user.events
         return queryset
@@ -54,7 +54,7 @@ class ListEventsView(ListView):
 @method_decorator([login_required, promotion_required], name='dispatch')
 class EventCreateView(CreateView):
     model = Event
-    fields = ('name',)
+    fields = ('name','date',)
     template_name = 'ammamanager/promotions/event_add_form.html'
 
     def form_valid(self, form):
@@ -82,7 +82,6 @@ class EventView(UpdateView):
     def get_success_url(self):
         return reverse('promotions:event', kwargs={'pk': self.object.pk})
 
-
 @login_required
 @promotion_required
 def finished_event(request, pk):
@@ -95,6 +94,26 @@ def finished_event(request, pk):
         'bouts': bouts,
         'finished': finished
     })
+
+@login_required
+@promotion_required
+def event(request, pk):
+    event = get_object_or_404(Event, pk=pk, owner=request.user)
+    bouts = Bout.objects.all().filter(event=event)
+    finbouts = Bout.objects.all().filter(event=event).filter(set=True).filter(completed=False)
+    finished = FinishedFight.objects.all().filter(event=event)
+    if event.finished == False:
+        return render(request, 'ammamanager/promotions/event.html', {
+            'event': event,
+            'bouts': bouts,
+            'finished': finished
+        })
+    else:
+        return render(request, 'ammamanager/promotions/finished_event.html', {
+            'event': event,
+            'finbouts': finbouts,
+            'finished': finished
+        })
 
 
 @login_required
@@ -128,7 +147,7 @@ def BoutView(request, pk, bout_pk, *args, **kwargs):
 
     event = get_object_or_404(Event, pk=pk, owner=request.user)
     bout = get_object_or_404(Bout, pk=bout_pk, event=event)
-    fighters = Fighter.objects.all().filter(weight=bout.weight)
+    fighters = Fighter.objects.all().filter(weight=bout.weight).filter(available = True)
     recfighterstemp = None;
     if bout.fighter1 is not None:
         fighters = fighters.exclude(pk=bout.fighter1.pk)
@@ -181,7 +200,7 @@ def removeFighters(request, pk, bout_pk, *args, **kwargs):
 @promotion_required
 def offer_fight(request, pk, bout_pk, *args, **kwargs):
 
-    event = get_object_or_404(Event, pk=pk, owner=request.user)
+    event = get_object_or_404(Event, pk=pk, owner=request.user)                    #Doesnt seem right
     bout = get_object_or_404(Bout, pk=bout_pk, event=event)
     f1 = bout.fighter1
     f2 = bout.fighter2
@@ -198,6 +217,10 @@ def finished_bout(request, pk, bout_pk, fighter_pk):
     bout = get_object_or_404(Bout, pk=bout_pk)
     event = bout.event
     winner = get_object_or_404(Fighter, pk=fighter_pk)
+    if bout.fighter1 == winner:
+        loser = bout.fighter2
+    else:
+        loser = bout.fighter1
 
     if request.method == 'POST':
         form = FightForm(request.POST)
@@ -205,34 +228,22 @@ def finished_bout(request, pk, bout_pk, fighter_pk):
             fight = form.save(commit=False)
             fight.bout = bout
             fight.winner = winner
+            fight.loser = loser
             fight.event = event
             fight.save()
-            fight.bout.final = True
+            fight.bout.completed = True
             fight.bout.save()
 
             winner.wins = winner.wins + 1
+            loser.losses = loser.losses + 1
+            winner.points += 10
+            loser.points -= 10
+            winner.available = True
+            loser.available = True
             winner.save()
-            if winner == bout.fighter1:
-                bout.fighter2.losses = bout.fighter2.losses + 1
-                if fight.method == 'KO' or fight.method == 'SUB':
-                    bout.fighter2.points -= (bout.fighter1.points/100) * 1.2
-                    bout.fighter1.points += (bout.fighter2.points / 100) * 1.2
-                else:
-                    bout.fighter2.points -= (bout.fighter1.points / 100)
-                    bout.fighter1.points += (bout.fighter2.points / 100)
-                bout.fighter2.save()
-                bout.fighter1.save()
-            else:
-                bout.fighter1.losses = bout.fighter1.losses + 1
-                if fight.method == 'KO' or fight.method == 'SUB':
-                    bout.fighter1.points -= (bout.fighter2.points/100) * 1.2
-                    bout.fighter2.points += (bout.fighter1.points / 100) * 1.2
-                else:
-                    bout.fighter1.points -= (bout.fighter2.points / 100) * 1
-                    bout.fighter2.points += (bout.fighter1.points / 100) * 1
-                bout.fighter1.save()
-                bout.fighter2.save()
-
+            loser.save()
+            set_fight_scores(fight.id)
+            score_fighters()
             ranking(bout.weight)
             messages.success(request, 'Records Updated')
             return redirect('promotions:event', event.pk)
@@ -240,6 +251,47 @@ def finished_bout(request, pk, bout_pk, fighter_pk):
         form = FightForm()
 
     return render(request, 'ammamanager/promotions/bout_add_form.html', {'event': event, 'form': form})
+
+
+def finish_event(request, pk):
+    event = get_object_or_404(Event, pk=pk)
+    event.finished = True
+    event.save()
+    return redirect('promotions:event', event.pk)
+
+
+def set_fight_scores(pk):
+    fin_bout = get_object_or_404(FinishedFight, pk=pk)
+    r1 = 10**(fin_bout.winner.points/400)
+    r2 = 10**(fin_bout.loser.points/400)
+    e1 = r1/(r1 + r2)
+    e2 = r2 / (r1 + r2)
+    w = 75 * (1 - e1)
+    l = 75 * (0 - e2)
+
+    if fin_bout.method is not "DEC":
+        w = w * 1.2
+        l = l * 1.2
+
+    fin_bout.winnerPoints = w
+    fin_bout.loserPoints = l
+    fin_bout.save()
+    return 0
+
+
+def score_fighters():
+    fighters = Fighter.objects.all()
+    for fighter in fighters:
+        points = fighter.initialPointsBoost
+        fights = FinishedFight.objects.all().filter(Q(winner=fighter) | Q(loser=fighter))
+        for fight in fights:
+            if fight.winner == fighter:
+                points += fight.winnerPoints
+            else:
+                points += fight.loserPoints
+        fighter.points = 1000 + points
+        fighter.save()
+        return 0
 
 
 def ranking(weight):
