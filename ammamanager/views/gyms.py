@@ -1,0 +1,180 @@
+from django.contrib import messages
+from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
+from django.db.models import Count
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
+from django.views.generic import CreateView, ListView, UpdateView
+
+from ..decorators import gym_required
+from ..forms import GymSignUpForm
+from ..models import Gym, User, Fighter, FightOffer, Bout, FinishedFight
+from django.db.models import Q
+
+
+class GymSignUpView(CreateView):
+    model = User
+    form_class = GymSignUpForm
+    template_name = 'registration/signup_form.html'
+
+    def get_context_data(self, **kwargs):
+        kwargs['user_type'] = 'gym'
+        return super().get_context_data(**kwargs)
+
+    def form_valid(self, form):
+        user = form.save()
+        login(self.request, user)
+        return redirect('gyms:gym_home')
+
+
+@method_decorator([login_required, gym_required], name='dispatch')
+class GymHomeView(ListView):
+    model = User
+    ordering = ('name', )
+    context_object_name = 'gyms'
+    template_name = 'ammamanager/gyms/gym_home.html'
+
+
+@method_decorator([login_required, gym_required], name='dispatch')
+class ListFightersView(ListView):
+    model = Fighter
+    ordering = ('name', )
+    context_object_name = 'fighters'
+    template_name = 'ammamanager/gyms/fighter_list.html'
+
+    def get_queryset(self):
+        query =  self.request.GET.get("q", None)
+        queryset = self.request.user.fighters
+        if query is not None:
+            queryset = queryset.filter(fname__icontains=query)
+        return queryset
+
+
+
+@method_decorator([login_required, gym_required], name='dispatch')
+class FighterCreateView(CreateView):
+    model = Fighter
+    fields = ('fname', 'lname', 'nname', 'weight', 'wins', 'losses', 'draws', 'nc' )
+    template_name = 'ammamanager/gyms/fighter_add_form.html'
+
+    def form_valid(self, form):
+        fighter = form.save(commit=False)
+        fighter.gym = self.request.user
+        fighter.initialPointsBoost = (20 * fighter.wins) - (20 * fighter.losses)
+        fighter.save()
+        messages.success(self.request, 'Fighter Successfully Added!!')
+        return redirect('gyms:fighter_list')
+
+
+@login_required
+@gym_required
+def fighter_view(request, pk, *args, **kwargs):
+
+    fighter = get_object_or_404(Fighter, pk=pk, gym=request.user)
+    offers = FightOffer.objects.all()
+    offersfighters = offers.filter(fighter = fighter)
+    offersopponents = offers.filter(opponent = fighter)
+    offers = offersfighters | offersopponents
+    pastfights = Bout.objects.all().filter(Q(fighter1=fighter) | Q(fighter2=fighter))
+    finishedfights = FinishedFight.objects.all().filter(Q(winner=fighter) | Q(loser=fighter))
+    return render(request, 'ammamanager/gyms/fighter.html', {
+        'fighter' : fighter,
+        'offers' : offers,
+        'past' : pastfights,
+        'finished' : finishedfights
+    })
+
+
+@login_required
+@gym_required
+def fighter_delete(request, pk):
+
+    Fighter.objects.filter(pk=pk).delete()
+
+    return redirect('gyms:fighter_list')
+
+
+@login_required
+@gym_required
+def accept_fight(request, pk, offer_pk):
+    fighter = get_object_or_404(Fighter, pk=pk)
+    offer = get_object_or_404(FightOffer, pk=offer_pk)
+    bout = offer.bout
+    offer.accepted = True
+    offer.save()
+
+    if fighter == bout.fighter1:
+        bout.accepted1 = True
+    else:
+        bout.accepted2 = True
+
+    if bout.accepted1 == True and bout.accepted2 == True:
+        bout.set = True
+        offers = FightOffer.objects.all()
+
+        offersfighters1 = offers.filter(fighter=bout.fighter1)
+        offersopponents1 = offers.filter(opponent=bout.fighter2)
+        offers1 = offersfighters1 | offersopponents1
+        for o in offers1:
+            if o is not offer:
+                o.bout.delete();
+            o.delete()
+
+        offersfighters2 = offers.filter(fighter=bout.fighter2)
+        offersopponents2 = offers.filter(opponent=bout.fighter1)
+        offers1 = offersfighters2 | offersopponents2
+        for o in offers1:
+            if o is not offer:
+                o.bout.delete();
+            o.delete()
+
+        bout.fighter1.available = False
+        bout.fighter2.available = False
+        bout.fighter1.save()
+        bout.fighter2.save()
+
+    bout.save()
+
+
+    return redirect('gyms:fighter', pk)
+
+@login_required
+@gym_required
+def deny_fight(request, pk, offer_pk):
+    fighter = get_object_or_404(Fighter, pk=pk)
+    offer = get_object_or_404(FightOffer, pk=offer_pk)
+    bout = offer.bout
+    offer.delete()
+    bout.delete()
+
+    return redirect('gyms:fighter', pk)
+
+
+@login_required
+@gym_required
+def fighter_availability(request, pk):
+    fighter = get_object_or_404(Fighter, pk=pk)
+    if fighter.available == False:
+        fighter.available = True
+    else:
+        fighter.available = False
+    fighter.save()
+    return redirect('gyms:fighter', pk)
+
+
+def score_fighters():
+    fighters = Fighter.objects.all()
+    fights = FinishedFight.objects.all()
+    for fighter in fighters:
+        points = fighter.initialPointsBoost
+        fights = FinishedFight.objects.all().filter(Q(winner=fighter) | Q(loser=fighter))
+        for fight in fights:
+            if fight.winner == fighter:
+                points += fight.winnerPoints
+            else:
+                points += fight.loserPoints
+        fighter.points = 1000 + points;
+
+    return 0

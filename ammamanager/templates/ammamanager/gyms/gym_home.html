@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<main>
+    <div class="card">
+        <h3>{{user.username}}</h3>
+    </div>
+    <a href="{% url 'gyms:fighter_list' %}" class="btn btn-primary mb-3" role="button">View Fighters</a>
+</main>
+{% endblock %}
