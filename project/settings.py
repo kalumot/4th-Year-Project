@@ -87,7 +87,9 @@ DATABASES = {
         'USER': 'kalum@amma',
         'PASSWORD': 'Neonking96',
         'HOST': 'amma.database.windows.net',
-
+        'OPTIONS':{
+         'DRIVER':'{ODBC Driver 17 for SQL Server}',
+        }
     }
 }
 
