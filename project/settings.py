@@ -110,10 +110,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
-STATIC_URL = 'D:/home/site/wwwroot/static'
+STATIC_URL = '/static/'
+
+STATIC_ROOT= os.path.join(BASE_DIR,'static-files')
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
+    'D:/home/site/wwwroot/static',
+    os.path.join(BASE_DIR,'static'),
 ]
 
 # Custom Django auth settings
