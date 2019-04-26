@@ -87,7 +87,7 @@ DATABASES = {
         'USER': 'kalum@amma',
         'PASSWORD': 'Neonking96',
         'HOST': 'amma.database.windows.net',
-        OPTIONS[driver] = 'SQL Server Native Client 11.0'
+        OPTIONS[driver] = 'ODBC Driver 17 for SQL Server'
     }
 }
 
