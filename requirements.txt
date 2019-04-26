@@ -1,5 +1,6 @@
 Django==2.1.3
 django-crispy-forms==1.7.2
 pytz==2018.7
-pyodbc
-django-pyodbc-azure
+pyodbc==4.0.26
+django-pyodbc-azure==2.1.0.0
+
