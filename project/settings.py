@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
-import os.path
 
 from django.contrib.messages import constants as messages
 
@@ -110,11 +109,8 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
-SITE_ROOT = os.path.dirname(__file__)
 STATIC_ROOT = path.join(BASE_DIR, 'static').replace('\\','/')
 STATIC_URL = '/static/'
-TEMPLATE_DIRS = (
-   os.path.join(SITE_ROOT, "templates"),)
 # Custom Django auth settings
 
 AUTH_USER_MODEL = 'ammamanager.User'
