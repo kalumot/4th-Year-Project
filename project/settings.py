@@ -82,9 +82,12 @@ WSGI_APPLICATION = 'project.wsgi.application'
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+'default': {
+        'ENGINE': 'sql_server.pyodbc',
+        'NAME': 'AMMA',
+        'USER': 'kalum@amma',
+        'PASSWORD': 'Neonking96',
+        'HOST': 'amma.database.windows.net',
     }
 }
 
