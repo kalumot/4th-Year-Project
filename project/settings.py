@@ -89,8 +89,7 @@ DATABASES = {
         'PASSWORD': 'Neonking96',
         'HOST': 'amma.database.windows.net',
         'OPTIONS' : {
-            'driver': 'ODBC Driver 13 for SQL Server', 
-            'MARS_Connection': True,
+            'host_is_server': True,
         },
     }
 }
