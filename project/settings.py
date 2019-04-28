@@ -31,6 +31,7 @@ ALLOWED_HOSTS = [u'kalumammamanager.azurewebsites.net','127.0.0.1']
 
 INSTALLED_APPS = [
     'django.contrib.auth',
+    'django.contrib.admin',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
@@ -38,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'ammamanager',
     'project',
-    'crispy_forms'
+    'crispy_forms',
+    'chartjs',
 ]
 
 MIDDLEWARE = [
