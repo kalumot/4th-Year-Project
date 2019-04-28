@@ -106,12 +106,20 @@ class ListEventsView(ListView):
     model = Event
     ordering = ('name', )
     context_object_name = 'events'
-    template_name = 'ammamanager/promotions/event_list.html'
-    #events = Event.objects.all().filter(owner=.user)
+    template_name = 'ammamanager/promotions/event_list_finished.html'
     def get_queryset(self):
-        queryset = self.request.user.events.order_by('-id')
+        queryset = self.request.user.events.order_by('-id').filter(finished= True)
         return queryset
 
+@method_decorator([login_required, promotion_required], name='dispatch')
+class ListEventsUpcomingView(ListView):
+    model = Event
+    ordering = ('name', )
+    context_object_name = 'events'
+    template_name = 'ammamanager/promotions/event_list.html'
+    def get_queryset(self):
+        queryset = self.request.user.events.order_by('-id').filter(finished= False)
+        return queryset
 
 @method_decorator([login_required, promotion_required], name='dispatch')
 class EventCreateView(CreateView):
@@ -247,6 +255,7 @@ def offer(request, pk, bout_pk, fighter_pk, *args, **kwargs):
 
     return redirect('promotions:bout', event.pk, bout.pk)
 
+
 @login_required
 @promotion_required
 def removeFighters(request, pk, bout_pk, *args, **kwargs):
@@ -320,6 +329,7 @@ def finished_bout(request, pk, bout_pk, fighter_pk):
 
     return render(request, 'ammamanager/promotions/bout_add_form.html', {'event': event, 'form': form})
 
+
 def draw_bout(request, pk, bout_pk):
     bout = get_object_or_404(Bout, pk=bout_pk)
     fin = FinishedFight(bout=bout,event = bout.event, winner = bout.fighter1, loser = bout.fighter2, method = 'DRAW', round = 5, min = 5, sec = 0, winnerPoints = 0, loserPoints = 0)
@@ -334,10 +344,11 @@ def draw_bout(request, pk, bout_pk):
     bout.save()
     return redirect('promotions:event', bout.event.pk)
 
+
 def nc_bout(request, pk, bout_pk):
     bout = get_object_or_404(Bout, pk=bout_pk)
     fin = FinishedFight(bout=bout,event = bout.event, winner = bout.fighter1, loser = bout.fighter2, method = 'NC', round = 0, min = 0, sec = 0, winnerPoints = 0, loserPoints = 0)
-    fin.winner.nc +=1
+    fin.winner.nc += 1
     fin.winner.available = True
     fin.loser.nc += 1
     fin.loser.available = True
@@ -371,7 +382,6 @@ def set_fight_scores(pk):
     if fin_bout.method is not "DEC":
         w = w * (1 +((6-fin_bout.round)/20))
         l = l * (1 +((6-fin_bout.round)/20))
-
 
     fin_bout.winnerPoints = w
     fin_bout.loserPoints = l
