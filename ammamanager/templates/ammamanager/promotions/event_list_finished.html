@@ -2,7 +2,6 @@
 {% load static %}
 {% block content %}
 <main>
-    <a href="{% url 'promotions:event_add' %}" class="btn btn-primary mb-3" role="button">Add Event</a>
     <table class="table mb-0">
         <thead>
         <tr>
@@ -19,10 +18,11 @@
         </tr>
         {% empty %}
         <tr>
-            <td class="bg-light text-center font-italic" colspan="5">No Upcoming Events.</td>
+            <td class="bg-light text-center font-italic" colspan="5">No Finished Events.</td>
         </tr>
         {% endfor %}
         </tbody>
     </table>
+
 </main>
 {% endblock %}
