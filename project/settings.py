@@ -27,13 +27,14 @@ SECRET_KEY = 'd$pxg6fisc4iwzk&vz^s_d0lkf&k63l5a8f!obktw!jg#4zvp3'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [u'kalumammamanager.azurewebsites.net','ammaproject.azurewebsites.net','127.0.0.1']
+ALLOWED_HOSTS = [u'ammahelper.azurewebsites.net','127.0.0.1']
 
 
 # Application definition
 
 INSTALLED_APPS = [
     'django.contrib.auth',
+    'django.contrib.admin',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
@@ -41,7 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'ammamanager',
     'project',
-    'crispy_forms'
+    'crispy_forms',
+    'chartjs',
 ]
 
 MIDDLEWARE = [
@@ -79,7 +81,6 @@ WSGI_APPLICATION = 'project.wsgi.application'
 
 
 # Database
-
 DATABASES = {
     'default': {
         'ENGINE': 'sql_server.pyodbc',
@@ -87,9 +88,6 @@ DATABASES = {
         'USER': 'kalum@amma',
         'PASSWORD': 'Neonking96',
         'HOST': 'amma.database.windows.net',
-        'OPTIONS' : {
-            'driver': 'ODBC Driver 17 for SQL Server',
-        },
     }
 }
 
@@ -110,12 +108,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
-STATIC_URL = 'https://kalumammamanager.scm.azurewebsites.net/wwwroot/static/'
-PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-STATIC_ROOT = os.path.join(PROJECT_DIR, 'static')
+STATIC_URL = '/static/'
+
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
+
+
 # Custom Django auth settings
 
 AUTH_USER_MODEL = 'ammamanager.User'

@@ -16,6 +16,7 @@
             <th>Fighter 1</th>
             <th>Fighter 2</th>
             <th></th>
+            <th></th>
         </tr>
         </thead>
         <tbody>
@@ -27,6 +28,10 @@
                                         class="btn btn-primary mb-3" role="button">{{ bout.fighter1 }}</a></td>
             <td class="align-middle"><a href="{% url 'promotions:finished_bout' event.pk bout.pk fighter2.pk %}"
                                         class="btn btn-primary mb-3" role="button">{{ bout.fighter2 }}</a></td>
+            <td class="align-middle"><a href="{% url 'promotions:draw_bout' event.pk bout.pk %}" style="float: right;"
+                                        class="btn btn-primary mb-3" role="button">Draw</a></td>
+            <td class="align-middle"><a href="{% url 'promotions:nc_bout' event.pk bout.pk %}" style="float: right;"
+                                        class="btn btn-primary mb-3" role="button">No Contest</a></td>
         </tr>
         {% endwith %}{% endwith %}
         {% empty %}
@@ -42,6 +47,7 @@
     <table class="table mb-0">
         <thead>
         <tr>
+            <th>Method</th>
             <th>Winner</th>
             <th>Loser</th>
             <th>Round</th>
@@ -52,6 +58,7 @@
         <tbody>
         {% for f in finished.all %}
         <tr>
+            <td class="align-middle">{{ f.method }}</td>
             <td class="align-middle">{{ f.winner }}</td>
             <td class="align-middle">{{ f.loser }}</td>
             <td class="align-middle">{{ f.round }}</td>

@@ -6,7 +6,7 @@ urlpatterns = [
     path('', ammamanager.home, name='home'),
 
     path('gyms/', include(([
-        path('', gyms.GymHomeView.as_view(), name='gym_home'),
+        path('', gyms.gym_home, name='gym_home'),
         path('fighters/', gyms.ListFightersView.as_view(), name='fighter_list'),
         path('fighters/<int:pk>', gyms.fighter_view, name='fighter'),
         path('fighters/<int:pk>/<int:offer_pk>/accept', gyms.accept_fight, name='accept_fight'),
@@ -18,7 +18,7 @@ urlpatterns = [
 
 
     path('promotions/', include(([
-        path('', promotions.PromotionHomeView.as_view(), name='promotion_home'),
+        path('', promotions.promotion_home, name='promotion_home'),
         path('events/', promotions.ListEventsView.as_view(), name='event_list'),
         path('events/add/', promotions.EventCreateView.as_view(), name='event_add'),
         path('events/<int:pk>/', promotions.event, name='event'),
@@ -27,6 +27,8 @@ urlpatterns = [
         path('events/<int:pk>/bout/add', promotions.bout_add, name='bout_add'),
         path('events/<int:pk>/bout/<int:bout_pk>/', promotions.BoutView, name='bout'),
         path('events/<int:pk>/bout/<int:bout_pk>/finished/<int:fighter_pk>', promotions.finished_bout, name='finished_bout'),
+        path('events/<int:pk>/bout/<int:bout_pk>/finished/draw', promotions.draw_bout, name='draw_bout'),
+        path('events/<int:pk>/bout/<int:bout_pk>/finished/nc', promotions.nc_bout, name='nc_bout'),
         path('events/<int:pk>/bout/<int:bout_pk>/offer/<int:fighter_pk>', promotions.offer, name='offer'),
         path('events/<int:pk>/bout/<int:bout_pk>/removefighters', promotions.removeFighters, name='remove_fighters'),
         path('events/<int:pk>/bout/<int:bout_pk>/offerfight', promotions.offer_fight, name='offer_fight'),

@@ -6,12 +6,13 @@ from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
-from django.views.generic import CreateView, ListView, UpdateView
+from django.views.generic import CreateView, ListView, UpdateView, TemplateView
 
 from ..decorators import gym_required
 from ..forms import GymSignUpForm
 from ..models import Gym, User, Fighter, FightOffer, Bout, FinishedFight
 from django.db.models import Q
+import arrow
 
 
 class GymSignUpView(CreateView):
@@ -30,11 +31,73 @@ class GymSignUpView(CreateView):
 
 
 @method_decorator([login_required, gym_required], name='dispatch')
-class GymHomeView(ListView):
-    model = User
-    ordering = ('name', )
-    context_object_name = 'gyms'
+class GymHomeView(TemplateView):
     template_name = 'ammamanager/gyms/gym_home.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(GymHomeView, self).get_context_data(**kwargs)
+        context['30_day_registrations'] = self.thirty_day_registrations()
+        return context
+
+    def thirty_day_registrations(self):
+        final_data = []
+
+        date = arrow.now()
+        for day in range(1, 30):
+            date = date.replace(days=-1)
+            count = 5
+            final_data.append(count)
+
+        return final_data
+
+
+@login_required
+@gym_required
+def gym_home(request,*args, **kwargs):
+    fighters = Fighter.objects.all().filter(gym=request.user)
+    fights = FinishedFight.objects.all().filter()
+    ko = 0
+    sub = 0
+    dec = 0
+    for w in fights:
+        if w.winner in fighters:
+            if w.method == 'KO':
+                ko += 1
+            elif w.method == 'SUB':
+                sub += 1
+            elif w.method == 'DEC':
+                dec += 1
+
+    lko = 0
+    lsub = 0
+    ldec = 0
+    for w in fights:
+        if w.loser in fighters:
+            if w.method == 'KO':
+                lko += 1
+            elif w.method == 'SUB':
+                lsub += 1
+            elif w.method == 'DEC':
+                ldec += 1
+
+    offered = []
+    for f in fighters:
+        offers = FightOffer.objects.all().filter(Q(fighter=f) | Q(opponent=f))
+        if offers:
+            offered.append(f)
+
+    #offered = list(dict.fromkeys(offered))
+
+
+    return render(request, 'ammamanager/gyms/gym_home.html', {
+        'KO' : ko,
+        'SUB' : sub,
+        'DEC' : dec,
+        'lKO': lko,
+        'lSUB': lsub,
+        'lDEC': ldec,
+        'offered': offered
+    })
 
 
 @method_decorator([login_required, gym_required], name='dispatch')
@@ -77,8 +140,8 @@ def fighter_view(request, pk, *args, **kwargs):
     offersfighters = offers.filter(fighter = fighter)
     offersopponents = offers.filter(opponent = fighter)
     offers = offersfighters | offersopponents
-    pastfights = Bout.objects.all().filter(Q(fighter1=fighter) | Q(fighter2=fighter))
-    finishedfights = FinishedFight.objects.all().filter(Q(winner=fighter) | Q(loser=fighter))
+    pastfights = Bout.objects.all().filter(Q(fighter1=fighter) | Q(fighter2=fighter)).order_by('-id')[:1]
+    finishedfights = FinishedFight.objects.all().filter(Q(winner=fighter) | Q(loser=fighter)).order_by('-id')
     return render(request, 'ammamanager/gyms/fighter.html', {
         'fighter' : fighter,
         'offers' : offers,
@@ -91,8 +154,10 @@ def fighter_view(request, pk, *args, **kwargs):
 @gym_required
 def fighter_delete(request, pk):
 
-    Fighter.objects.filter(pk=pk).delete()
-
+    fighter = get_object_or_404(Fighter, pk=pk)
+    fighter.gym = None
+    fighter.available = False
+    fighter.save()
     return redirect('gyms:fighter_list')
 
 
@@ -137,8 +202,8 @@ def accept_fight(request, pk, offer_pk):
 
     bout.save()
 
-
     return redirect('gyms:fighter', pk)
+
 
 @login_required
 @gym_required

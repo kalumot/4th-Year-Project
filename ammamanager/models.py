@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from datetime import datetime
 from django.utils.html import escape, mark_safe
+from django.core.validators import MaxValueValidator
 
 
 WEIGHT_CLASSES = (
@@ -51,7 +52,7 @@ class Event(models.Model):
 
 
 class Fighter(models.Model):
-    gym = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fighters')
+    gym = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fighters', null=True)
     fname = models.CharField(max_length=30)
     lname = models.CharField(max_length=30)
     nname = models.CharField(max_length=40)
@@ -101,9 +102,9 @@ class FinishedFight(models.Model):
     winner = models.ForeignKey(Fighter, on_delete=models.CASCADE, related_name='winner')
     loser = models.ForeignKey(Fighter, on_delete=models.CASCADE, related_name='loser', default=None)
     method = models.CharField(max_length=5, choices=METHODS, default='DEC')
-    round =  models.IntegerField(default=0)
-    min =  models.IntegerField(default=0)
-    sec =  models.IntegerField(default=0)
+    round = models.IntegerField(default=1, validators=[MaxValueValidator(5)])
+    min = models.IntegerField(default=1)
+    sec = models.IntegerField(default=1)
     winnerPoints = models.IntegerField(default=0)
     loserPoints = models.IntegerField(default=0)
 

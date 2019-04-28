@@ -14,10 +14,12 @@
 
 <main>
 
-    <h4>{{user}} Fighters <a href="{% url 'gyms:fighter_add' %}" style="float: right;" class="btn btn-outline-secondary"
-                             role="button">Add Fighter</a></h4>
+    <h4>{{user}} Fighters <a href="{% url 'gyms:fighter_add' %}" style="float: right;" class="btn btn-primary" role="button">Add Fighter</a></h4>
+    <form method='GET' action='/gyms/fighters/'>
+        <input type='text' name='q' placeholder='Search'>
+    </form>
     <div class="asset-inner">
-        <table>
+        <table class="table table-striped">
             <tr>
                 <th>Name</th>
                 <th>Nickname</th>
