@@ -19,7 +19,8 @@ urlpatterns = [
 
     path('promotions/', include(([
         path('', promotions.promotion_home, name='promotion_home'),
-        path('events/', promotions.ListEventsView.as_view(), name='event_list'),
+        path('events/', promotions.ListEventsView.as_view(), name='event_list_finished'),
+        path('events/upcoming', promotions.ListEventsUpcomingView.as_view(), name='event_list'),
         path('events/add/', promotions.EventCreateView.as_view(), name='event_add'),
         path('events/<int:pk>/', promotions.event, name='event'),
         path('events/<int:pk>/finish', promotions.finish_event, name='finish_event'),
