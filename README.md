@@ -1,3 +1,4 @@
 # 4th-Year-Project
-# https://github.com/kalumot/AMMA-Helper 
-# workon myproject     for venv
+# This is used by Azure. For localhost version: https://github.com/kalumot/4th-Year-Project-LocalHost    "workon myproject" for venv
+
+# AMMA Helper
