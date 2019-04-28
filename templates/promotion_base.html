@@ -29,7 +29,7 @@
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <img src="{% static "mmahelperlogo.png" %}" style=" width: 110px;"alt="Logo">
+        <img src="{% static "mmahelperlogo.png" %}" alt="Logo">
 
         <div class="collapse navbar-collapse" id="navbarsExampleDefault">
             <ul class="navbar-nav mr-auto">
@@ -41,7 +41,7 @@
                 </li>
             </ul>
             <form class="form-inline mt-2 mt-md-0">
-                <a class="nav-link" href="#">Log Out</a>
+                <a class="nav-link" href="{% url 'login' %}">Log Out</a>
             </form>
         </div>
     </nav>
